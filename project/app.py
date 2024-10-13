@@ -66,7 +66,7 @@ def contains_qr_code(image_path):
     detector = cv2.QRCodeDetector()
     image = cv2.imread(image_path)
     data, bbox, _ = detector.detectAndDecode(image)
-    return bbox is not None
+    return True if bbox is not None else False
 
 @app.route('/')
 def index():
@@ -74,25 +74,33 @@ def index():
 
 @app.route('/process', methods=['POST'])
 def process():
-
     image = request.files.get('image')
+    
 
     if image:
         # Save the image temporarily
         image_path = os.path.join('static', image.filename)
         image.save(image_path)
 
-        if contains_qr_code(image_path):
-            # QR code found, scan it
-            result = scan_qr_code(image_path)
-            perform_web_search(result)
-            return jsonify({'qr_code_data': result})  # Send QR data back to frontend
+        # Check for QR code
+        qr_code_data = contains_qr_code(image_path)
+
+        if qr_code_data==True:
+            # QR code found, return the URL to the frontend
+            qr_data=scan_qr_code(image_path)
+            search_results = perform_web_search(qr_data,max=1)
+            search_results.to_csv('results.csv', index=False)
+
+            # Read the CSV file and prepare data for rendering
+            csv_data = pd.read_csv('results.csv').values.tolist()
+            return render_template('result.html', csv_data=csv_data)  # Show search results
+            #return jsonify({'qr_code_data': qr_data})  # Send QR data back to frontend
         else:
             # No QR code found, extract text and perform search
             prompt = request.form.get('prompt')
             extracted_text = image_to_text(image_path)
             search_query = f"{extracted_text} {prompt}".strip()
-            search_results = perform_web_search(search_query)
+            search_results = perform_web_search(search_query,max=20)
             search_results.to_csv('results.csv', index=False)
 
             # Read the CSV file and prepare data for rendering
@@ -103,3 +111,4 @@ def process():
 
 if __name__ == '__main__':
     app.run(debug=True)
+

@@ -37,14 +37,14 @@ api html collect data from https://duckduckgo.com, collect data from https://htm
 lite collect data from https://lite.duckduckgo.com.
 max_results: max number of results. If None, returns results only from the first response. Defaults to None.
 """
-def perform_web_search(query):
+def perform_web_search(query,max):
 
     results=DDGS().text(
         keywords=query,
         region='in-en',
         safesearch='off',
         timelimit=None,
-        max_results=10
+        max_results=max
     )
     results_df=pd.DataFrame(results)
     return results_df

@@ -25,7 +25,7 @@
         h1 {
             font-family: 'Parisienne', cursive; /* Use the French font */
             color: #333;
-            font-size: 4em;
+            font-size: 3em; /* Increased font size */
         }
         p {
             font-size: 1.2em;
@@ -49,16 +49,13 @@
             color: white;
             padding: 10px 20px;
             border-radius: 5px;
-            border: 2px solid transparent;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: background-color 0.3s;
             margin-bottom: 15px;
             display: inline-block;
         }
-        label.selected {
-            background-color: white; /* Change to white when selected */
-            color: #007BFF; /* Change text to blue */
-            border: 2px solid #007BFF; /* Add blue border */
+        label:hover {
+            background-color: #0056b3;
         }
         .prompt-input {
             width: calc(100% - 20px);
@@ -82,14 +79,6 @@
         button:hover {
             background-color: #218838;
         }
-        video {
-            width: 100%;
-            max-width: 300px; /* Set max width for the video feed */
-            border: 1px solid #ccc; /* Optional border for video feed */
-            border-radius: 5px; /* Optional border radius */
-            margin-bottom: 10px; /* Space below video feed */
-            display: none; /* Initially hide the video */
-        }
     </style>
 </head>
 <body>
@@ -99,106 +88,16 @@
     </header>
     
     <div class="upload-container">
-        <form id="imageForm" action="/process" method="POST" enctype="multipart/form-data">
-            <!-- File input and label -->
-            <label for="image" id="fileLabel">
+        <form action="/process" method="POST" enctype="multipart/form-data">
+            <label for="image">
                 <i class="fas fa-upload"></i> Choose Image
             </label>
             <input type="file" id="image" name="image" accept="image/*" required>
-
             <br>
-            <!-- Prompt input -->
             <input type="text" name="prompt" class="prompt-input" placeholder="Enter your prompt" required>
-            
             <br>
-            <!-- Camera feed and button -->
-            <video id="video" autoplay></video>
-            <br>
-            <button type="button" id="capture">Open Camera</button>
-            <input type="hidden" name="capturedImage" id="capturedImage"> <!-- Hidden input for captured image data -->
-            <br>
-            <!-- Submit button -->
             <button type="submit">Search</button>
         </form>
     </div>
-
-    <script>
-        const fileInput = document.getElementById('image');
-        const fileLabel = document.getElementById('fileLabel');
-        const video = document.getElementById('video');
-        const capturedImageInput = document.getElementById('capturedImage');
-        const form = document.getElementById('imageForm');
-        const promptInput = document.querySelector('.prompt-input');
-
-        // Function to handle file input change and update label with filename
-        fileInput.addEventListener('change', function() {
-            const fileName = this.files[0]?.name || 'Choose Image'; // Fallback to 'Choose Image' if no file
-            if (this.files.length > 0) {
-                fileLabel.innerHTML = `<i class="fas fa-upload"></i> ${fileName}`;
-                fileLabel.classList.add('selected'); // Add class to change the style
-            } else {
-                fileLabel.innerHTML = `<i class="fas fa-upload"></i> Choose Image`; // Reset label to default
-                fileLabel.classList.remove('selected'); // Remove the selected class
-            }
-        });
-
-        // Function to start the camera
-        function startCamera() {
-            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                navigator.mediaDevices.getUserMedia({ video: true })
-                    .then(function(stream) {
-                        video.srcObject = stream;
-                        video.style.display = 'block';
-                        video.play();
-                    })
-                    .catch(function(err) {
-                        console.error("Error accessing the camera: " + err);
-                    });
-            }
-        }
-
-        // Capture the image from the video feed
-        document.getElementById('capture').addEventListener('click', function() {
-            startCamera();
-
-            // Create a canvas to capture the image
-            const canvas = document.createElement('canvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-
-            // Wait for the video feed to load
-            video.onloadedmetadata = function() {
-                const context = canvas.getContext('2d');
-                context.drawImage(video, 0, 0, canvas.width, canvas.height);
-                const dataUrl = canvas.toDataURL('image/png'); // Get image data URL
-                capturedImageInput.value = dataUrl; // Store image data in hidden input
-                alert('Image captured! You can now submit the form.');
-            };
-        });
-
-        // Handle form submission to process image and prompt
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();  // Prevent the form from submitting
-
-            const formData = new FormData(form);
-            fetch('/process', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.qr_code_data) {
-                    // If QR code data is found, fill the prompt input with it
-                    promptInput.value = data.qr_code_data;
-                } else {
-                    // If no QR code, submit the form to perform search
-                    form.submit();  // Perform the actual search now
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
-        });
-    </script>
 </body>
 </html>
