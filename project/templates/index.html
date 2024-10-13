@@ -45,7 +45,7 @@
             display: none; /* Hide the default file input */
         }
         label {
-            background-color: #007BFF;
+            background-color: #007BFF; /* Initial button color */
             color: white;
             padding: 10px 20px;
             border-radius: 5px;
@@ -66,7 +66,7 @@
             margin-bottom: 20px; /* Add margin to create space above the button */
         }
         button {
-            background-color: #28a745;
+            background-color: #28a745; /* Initial button color */
             color: white;
             padding: 10px 20px;
             border: none;
@@ -75,9 +75,20 @@
             font-size: 1em;
             transition: background-color 0.3s;
             margin-top: 10px; /* Add margin to shift the button lower */
+            width: 100%; /* Make the button take full width */
         }
         button:hover {
-            background-color: #218838;
+            background-color: #218838; /* Change color on hover */
+        }
+        /* Styles for active input */
+        .active-input {
+            background-color: white;
+            border: 2px solid #007BFF;
+        }
+        .file-input-active {
+            background-color: #e0f7fa; /* Change color of label button when file is selected */
+            border: 2px solid #007BFF;
+            color: #333; /* Darker text color */
         }
     </style>
 </head>
@@ -89,15 +100,34 @@
     
     <div class="upload-container">
         <form action="/process" method="POST" enctype="multipart/form-data">
-            <label for="image">
-                <i class="fas fa-upload"></i> Choose Image
-            </label>
-            <input type="file" id="image" name="image" accept="image/*" required>
+            <div class="file-input-container">
+                <label for="image" id="file-label">
+                    Choose Image
+                </label>
+                <input type="file" id="image" name="image" accept="image/*" required onchange="showFileName(this)">
+            </div>
             <br>
-            <input type="text" name="prompt" class="prompt-input" placeholder="Enter your prompt" required>
+            <input type="text" name="prompt" class="prompt-input" placeholder="Enter your prompt" required 
+                   onfocus="this.classList.add('active-input')" 
+                   onblur="this.classList.remove('active-input')">
             <br>
-            <button type="submit">Search</button>
+            <button type="submit" id="search-button">Search</button>
         </form>
     </div>
+
+    <script>
+        function showFileName(input) {
+            const label = document.getElementById('file-label');
+            if (input.files.length > 0) {
+                const fileName = input.files[0].name;
+                label.textContent = fileName; // Set label text to file name without the icon
+                label.classList.add('file-input-active'); // Change label button color
+            } else {
+                // Reset to original state if no file is selected
+                label.textContent = 'Choose Image'; // Reset label text
+                label.classList.remove('file-input-active'); // Reset label style
+            }
+        }
+    </script>
 </body>
 </html>
