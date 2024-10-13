@@ -2,6 +2,8 @@ import torch
 import pandas as pd
 from transformers import BlipProcessor, BlipForConditionalGeneration
 from duckduckgo_search import DDGS
+from PIL import Image
+
 
 def image_to_text(image_path):
     # Load the BLIP model and processor
