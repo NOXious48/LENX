@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LENX</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <script src="/static/script.js"></script>
+</head>
+<body>
+    <h1>LENX</h1>
+    <form id="inputForm" action="/process" method="post" enctype="multipart/form-data">
+        <input type="text" name="prompt" placeholder="Enter your prompt" required>
+        <input type="file" name="image" accept="image/*" required>
+        <button type="submit">Submit</button>
+    </form>
+    <button id="cameraButton">Use Camera</button>
+    <video id="video" autoplay></video>
+</body>
+</html>
