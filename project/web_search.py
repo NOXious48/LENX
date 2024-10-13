@@ -44,7 +44,7 @@ def perform_web_search(query):
         region='in-en',
         safesearch='off',
         timelimit=None,
-        max_results=50
+        max_results=10
     )
     results_df=pd.DataFrame(results)
     return results_df

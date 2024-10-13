@@ -4,10 +4,42 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Results</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        .result-item {
+            margin-bottom: 10px;
+        }
+        .result-item a {
+            text-decoration: none;
+            color: blue;
+        }
+        .result-item a:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
     <h1>Results</h1>
     <p>{{ message }}</p>
+
+    {% if csv_data %}
+        <h2>Search Results:</h2>
+        <div>
+            {% for row in csv_data %}
+                <div class="result-item">
+                    <strong>{{ row[0] }}</strong><br>
+                    <a href="{{ row[1] }}" target="_blank">{{ row[1] }}</a>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
     <a href="/">Go Back</a>
 </body>
 </html>
