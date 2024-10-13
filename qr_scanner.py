@@ -85,28 +85,3 @@ def scan_qr_code(image_path=None, camera_index=0):
 # For scanning from the second camera (external)
 # scan_qr_code(camera_index=1)
 
-# Function to check if the image contains a QR code
-def contains_qr_code(image_path):
-    # Load the image
-    img = cv2.imread(image_path)
-    
-    # Initialize the QRCodeDetector
-    detector = cv2.QRCodeDetector()
-    
-    # Detect QR code
-    bbox, _ = detector.detect(img)
-    
-    if bbox is not None:
-        print("QR Code detected!")
-        return True  # It's a QR code
-    else:
-        print("No QR Code detected.")
-        return False  # It's a regular image
-
-# Example usage
-#image_path = "qr.png"
-#if contains_qr_code(image_path):
-    print("This image contains a QR code.")
-#else:
-    print("This is a regular image.")
-
