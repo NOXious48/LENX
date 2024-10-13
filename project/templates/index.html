@@ -4,17 +4,201 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LENX</title>
-    <link rel="stylesheet" href="/static/styles.css">
-    <script src="/static/script.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Parisienne&display=swap" rel="stylesheet"> <!-- Added French font -->
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            background-color: #f4f4f4;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            padding: 20px;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        h1 {
+            font-family: 'Parisienne', cursive; /* Use the French font */
+            color: #333;
+            font-size: 4em;
+        }
+        p {
+            font-size: 1.2em;
+            color: #666;
+            margin-bottom: 20px;
+        }
+        .upload-container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+        }
+        input[type="file"] {
+            display: none; /* Hide the default file input */
+        }
+        label {
+            background-color: #007BFF;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 15px;
+            display: inline-block;
+        }
+        label.selected {
+            background-color: white; /* Change to white when selected */
+            color: #007BFF; /* Change text to blue */
+            border: 2px solid #007BFF; /* Add blue border */
+        }
+        .prompt-input {
+            width: calc(100% - 20px);
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1em;
+            margin-bottom: 20px; /* Add margin to create space above the button */
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s;
+            margin-top: 10px; /* Add margin to shift the button lower */
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        video {
+            width: 100%;
+            max-width: 300px; /* Set max width for the video feed */
+            border: 1px solid #ccc; /* Optional border for video feed */
+            border-radius: 5px; /* Optional border radius */
+            margin-bottom: 10px; /* Space below video feed */
+            display: none; /* Initially hide the video */
+        }
+    </style>
 </head>
 <body>
-    <h1>LENX</h1>
-    <form id="inputForm" action="/process" method="post" enctype="multipart/form-data">
-        <input type="text" name="prompt" placeholder="Enter your prompt" required>
-        <input type="file" name="image" accept="image/*" required>
-        <button type="submit">Submit</button>
-    </form>
-    <button id="cameraButton">Use Camera</button>
-    <video id="video" autoplay></video>
+    <header>
+        <h1>LENX</h1>
+        <p>Upload an image or use your camera to search!</p>
+    </header>
+    
+    <div class="upload-container">
+        <form id="imageForm" action="/process" method="POST" enctype="multipart/form-data">
+            <!-- File input and label -->
+            <label for="image" id="fileLabel">
+                <i class="fas fa-upload"></i> Choose Image
+            </label>
+            <input type="file" id="image" name="image" accept="image/*" required>
+
+            <br>
+            <!-- Prompt input -->
+            <input type="text" name="prompt" class="prompt-input" placeholder="Enter your prompt" required>
+            
+            <br>
+            <!-- Camera feed and button -->
+            <video id="video" autoplay></video>
+            <br>
+            <button type="button" id="capture">Open Camera</button>
+            <input type="hidden" name="capturedImage" id="capturedImage"> <!-- Hidden input for captured image data -->
+            <br>
+            <!-- Submit button -->
+            <button type="submit">Search</button>
+        </form>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('image');
+        const fileLabel = document.getElementById('fileLabel');
+        const video = document.getElementById('video');
+        const capturedImageInput = document.getElementById('capturedImage');
+        const form = document.getElementById('imageForm');
+        const promptInput = document.querySelector('.prompt-input');
+
+        // Function to handle file input change and update label with filename
+        fileInput.addEventListener('change', function() {
+            const fileName = this.files[0]?.name || 'Choose Image'; // Fallback to 'Choose Image' if no file
+            if (this.files.length > 0) {
+                fileLabel.innerHTML = `<i class="fas fa-upload"></i> ${fileName}`;
+                fileLabel.classList.add('selected'); // Add class to change the style
+            } else {
+                fileLabel.innerHTML = `<i class="fas fa-upload"></i> Choose Image`; // Reset label to default
+                fileLabel.classList.remove('selected'); // Remove the selected class
+            }
+        });
+
+        // Function to start the camera
+        function startCamera() {
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ video: true })
+                    .then(function(stream) {
+                        video.srcObject = stream;
+                        video.style.display = 'block';
+                        video.play();
+                    })
+                    .catch(function(err) {
+                        console.error("Error accessing the camera: " + err);
+                    });
+            }
+        }
+
+        // Capture the image from the video feed
+        document.getElementById('capture').addEventListener('click', function() {
+            startCamera();
+
+            // Create a canvas to capture the image
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+
+            // Wait for the video feed to load
+            video.onloadedmetadata = function() {
+                const context = canvas.getContext('2d');
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const dataUrl = canvas.toDataURL('image/png'); // Get image data URL
+                capturedImageInput.value = dataUrl; // Store image data in hidden input
+                alert('Image captured! You can now submit the form.');
+            };
+        });
+
+        // Handle form submission to process image and prompt
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();  // Prevent the form from submitting
+
+            const formData = new FormData(form);
+            fetch('/process', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.qr_code_data) {
+                    // If QR code data is found, fill the prompt input with it
+                    promptInput.value = data.qr_code_data;
+                } else {
+                    // If no QR code, submit the form to perform search
+                    form.submit();  // Perform the actual search now
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+    </script>
 </body>
 </html>

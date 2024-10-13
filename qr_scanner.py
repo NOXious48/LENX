@@ -28,10 +28,12 @@ def scan_qr_code(image_path=None, camera_index=0):
 
             # Show the image with the detected QR code
             cv2.imshow("QR Code Scanner", img)
-            cv2.waitKey(0)  # Wait for any key press
+            #cv2.waitKey(0)  # Wait for any key press
             cv2.destroyAllWindows()
+            return data
         else:
             print("No QR Code found")
+            return None
 
     else:
         # Open webcam with the specified camera index
