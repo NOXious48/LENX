@@ -13,7 +13,43 @@
         h1 {
             color: #333;
             text-align: center;
+            margin-bottom: 10px; /* Reduce margin for better spacing */
         }
+        /* Style for the go-back container */
+        .go-back {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px; /* Spacing between Go Back button and heading */
+        }
+
+        /* Styling the "Go Back" button */
+        .go-back a {
+            text-decoration: none;
+            display: inline-block;
+            background-color: #007BFF; /* Primary button color */
+            color: white;
+            padding: 8px 16px; /* Reduced padding for smaller button */
+            border-radius: 5px;
+            font-size: 1em; /* Reduced font size */
+            font-weight: bold;
+            transition: all 0.3s ease; /* Smooth transition */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+        }
+
+        /* Hover effect for the Go Back button */
+        .go-back a:hover {
+            background-color: #0056b3; /* Darker color on hover */
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* Slightly bigger shadow on hover */
+            transform: translateY(-2px); /* Subtle lift on hover */
+        }
+
+        /* Optional: Additional styling for focus and active states */
+        .go-back a:active {
+            background-color: #003f7f; /* Even darker when pressed */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Smaller shadow */
+            transform: translateY(0); /* Return to original position */
+        }
+
         .result-container {
             max-width: 800px; /* Limit the width of the results */
             margin: 0 auto; /* Center the results */
@@ -41,15 +77,19 @@
             text-decoration: underline;
             color: #0056b3; /* Darker blue on hover */
         }
-        .go-back {
-            text-align: center; /* Center the back link */
-            margin-top: 20px;
-        }
     </style>
 </head>
 <body>
-    <h1>Search Results</h1>
 
+    <!-- Search Results Heading -->
+    <h1>Search Results</h1>
+    
+    <!-- Go Back button at the top of the page -->
+    <div class="go-back">
+        <a href="/">Go Back</a>
+    </div>
+
+    <!-- Result Container -->
     <div class="result-container">
         {% if csv_data and csv_data|length > 0 %}
             <div>
@@ -63,10 +103,6 @@
         {% else %}
             <p>No Results Found. Please try another image or prompt.</p>
         {% endif %}
-    </div>
-
-    <div class="go-back">
-        <a href="/">Go Back</a>
     </div>
 </body>
 </html>
