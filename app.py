@@ -179,6 +179,8 @@ import cv2
 import pandas as pd
 from qr_scanner import scan_qr_code
 from web_search import image_to_text, perform_web_search
+from PIL import Image
+import pytesseract
 
 app = Flask(__name__)
 
@@ -188,6 +190,15 @@ def contains_qr_code(image_path):
     data, bbox, _ = detector.detectAndDecode(image)
     return bbox is not None, data
 
+def extract_text_from_image(img_filename, tesseract_config=r"--psm 6 --oem 3"):
+    if not os.path.exists(img_filename):
+        raise FileNotFoundError(f"Image file '{img_filename}' does not exist.")
+    
+    img = Image.open(img_filename)
+    text = pytesseract.image_to_string(img, config=tesseract_config)
+    return text
+
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -195,7 +206,10 @@ def index():
 @app.route('/process', methods=['POST'])
 def process():
     image = request.files.get('image')
-    prompt = request.form.get('prompt', '')
+    prompt = request.form.get('prompt')
+
+    if(prompt == ""):
+        prompt = "Search for this: "
 
     if image:
         # Save the image temporarily
@@ -212,11 +226,14 @@ def process():
         else:
             # No QR code found, extract text and perform search
             extracted_text = image_to_text(image_path)
-            if extracted_text.strip():
-                search_query = f"{extracted_text} {prompt}".strip()
+            extracted_text_2 = extract_text_from_image(image_path)
+            if extracted_text_2.strip():
+                search_query = f"{prompt} {extracted_text_2} and {extracted_text}".strip()
                 search_results = perform_web_search(search_query, max=20)
             else:
-                return render_template('result.html', csv_data=None, error="No text extracted from image.")
+                search_query = f"{prompt} and {extracted_text}".strip()
+                search_results = perform_web_search(search_query, max=20)
+                # return render_template('result.html', csv_data=None, error="No text extracted from image.")
 
         # Save search results to CSV
         search_results.to_csv('results.csv', index=False)
