@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LENX</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Parisienne&display=swap" rel="stylesheet"> <!-- Added French font -->
+    <link href="https://fonts.googleapis.com/css2?family=Parisienne&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -15,7 +15,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 100vh;
+            min-height: 100vh;
             padding: 20px;
         }
         header {
@@ -23,9 +23,9 @@
             margin-bottom: 30px;
         }
         h1 {
-            font-family: 'Parisienne', cursive; /* Use the French font */
+            font-family: 'Parisienne', cursive;
             color: #333;
-            font-size: 3em; /* Increased font size */
+            font-size: 3em;
         }
         p {
             font-size: 1.2em;
@@ -42,10 +42,10 @@
             text-align: center;
         }
         input[type="file"] {
-            display: none; /* Hide the default file input */
+            display: none;
         }
-        label {
-            background-color: #007BFF; /* Initial button color */
+        label, .camera-button, .capture-button, .retake-button {
+            background-color: #007BFF;
             color: white;
             padding: 10px 20px;
             border-radius: 5px;
@@ -54,7 +54,7 @@
             margin-bottom: 15px;
             display: inline-block;
         }
-        label:hover {
+        label:hover, .camera-button:hover, .capture-button:hover, .retake-button:hover {
             background-color: #0056b3;
         }
         .prompt-input {
@@ -63,10 +63,10 @@
             border: 1px solid #ccc;
             border-radius: 5px;
             font-size: 1em;
-            margin-bottom: 20px; /* Add margin to create space above the button */
+            margin-bottom: 20px;
         }
         button {
-            background-color: #28a745; /* Initial button color */
+            background-color: #28a745;
             color: white;
             padding: 10px 20px;
             border: none;
@@ -74,28 +74,38 @@
             cursor: pointer;
             font-size: 1em;
             transition: background-color 0.3s;
-            margin-top: 10px; /* Add margin to shift the button lower */
-            width: 100%; /* Make the button take full width */
+            margin-top: 10px;
+            width: 100%;
         }
         button:hover {
-            background-color: #218838; /* Change color on hover */
+            background-color: #218838;
         }
-        /* Styles for active input */
         .active-input {
             background-color: white;
             border: 2px solid #007BFF;
         }
         .file-input-active {
-            background-color: #e0f7fa; /* Change color of label button when file is selected */
+            background-color: #e0f7fa;
             border: 2px solid #007BFF;
-            color: #333; /* Darker text color */
+            color: #333;
+        }
+        #video, #canvas {
+            width: 100%;
+            max-width: 400px;
+            margin-top: 20px;
+            display: none;
+        }
+        #photo {
+            max-width: 100%;
+            margin-top: 20px;
+            display: none;
         }
     </style>
 </head>
 <body>
     <header>
         <h1>LENX</h1>
-        <p>Upload an image or use your camera to search!</p>
+        <p>Upload an image, use your camera, or take a photo to search!</p>
     </header>
     
     <div class="upload-container">
@@ -107,6 +117,14 @@
                 <input type="file" id="image" name="image" accept="image/*" required onchange="showFileName(this)">
             </div>
             <br>
+            <button type="button" id="cameraButton" class="camera-button">Open Camera</button>
+            <button type="button" id="captureButton" class="capture-button" style="display: none;">Take Picture</button>
+            <button type="button" id="retakeButton" class="retake-button" style="display: none;">Retake Picture</button>
+            <br>
+            <video id="video" autoplay playsinline></video>
+            <canvas id="canvas" style="display:none;"></canvas>
+            <img id="photo" alt="The screen capture will appear in this box.">
+            <br>
             <input type="text" name="prompt" class="prompt-input" placeholder="Enter your prompt" required 
                    onfocus="this.classList.add('active-input')" 
                    onblur="this.classList.remove('active-input')">
@@ -116,18 +134,83 @@
     </div>
 
     <script>
+        let stream;
+
         function showFileName(input) {
             const label = document.getElementById('file-label');
             if (input.files.length > 0) {
                 const fileName = input.files[0].name;
-                label.textContent = fileName; // Set label text to file name without the icon
-                label.classList.add('file-input-active'); // Change label button color
+                label.textContent = fileName;
+                label.classList.add('file-input-active');
             } else {
-                // Reset to original state if no file is selected
-                label.textContent = 'Choose Image'; // Reset label text
-                label.classList.remove('file-input-active'); // Reset label style
+                label.textContent = 'Choose Image';
+                label.classList.remove('file-input-active');
             }
         }
+
+        document.getElementById('cameraButton').addEventListener('click', function() {
+            const video = document.getElementById('video');
+            const captureButton = document.getElementById('captureButton');
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ video: true })
+                    .then(function(streamObj) {
+                        stream = streamObj;
+                        video.srcObject = stream;
+                        video.style.display = 'block';
+                        captureButton.style.display = 'inline-block';
+                        document.getElementById('cameraButton').style.display = 'none';
+                    })
+                    .catch(function(error) {
+                        console.error("Camera access error:", error);
+                    });
+            }
+        });
+
+        document.getElementById('captureButton').addEventListener('click', function() {
+            const video = document.getElementById('video');
+            const canvas = document.getElementById('canvas');
+            const photo = document.getElementById('photo');
+            const retakeButton = document.getElementById('retakeButton');
+            const captureButton = document.getElementById('captureButton');
+
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+            
+            const dataUrl = canvas.toDataURL('image/jpeg');
+            photo.src = dataUrl;
+            photo.style.display = 'block';
+
+            video.style.display = 'none';
+            captureButton.style.display = 'none';
+            retakeButton.style.display = 'inline-block';
+
+            // Stop all video streams
+            stream.getTracks().forEach(track => track.stop());
+        });
+
+        document.getElementById('retakeButton').addEventListener('click', function() {
+            const video = document.getElementById('video');
+            const photo = document.getElementById('photo');
+            const captureButton = document.getElementById('captureButton');
+            const retakeButton = document.getElementById('retakeButton');
+
+            // Reset display
+            video.style.display = 'block';
+            photo.style.display = 'none';
+            captureButton.style.display = 'inline-block';
+            retakeButton.style.display = 'none';
+
+            // Restart video stream
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(function(streamObj) {
+                    stream = streamObj;
+                    video.srcObject = stream;
+                })
+                .catch(function(error) {
+                    console.error("Camera access error:", error);
+                });
+        });
     </script>
 </body>
 </html>
