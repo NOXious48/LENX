@@ -34,7 +34,6 @@ def image_to_text(image_path):
 
     # Decode the generated caption
     caption = processor.decode(generated_ids[0], skip_special_tokens=True)
-    print(caption)
     return caption
 
 # Define the function for web search using ContextualWebSearch API
