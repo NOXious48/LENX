@@ -3,7 +3,20 @@ import pandas as pd
 from transformers import BlipProcessor, BlipForConditionalGeneration
 from duckduckgo_search import DDGS
 from PIL import Image
+import ollama
 
+def call_llm(query):
+    model="llama3.1:latest"
+
+    response=ollama.chat(model=model,messages=[
+        {
+            'role':'user',
+            'content':query,
+        },
+    ])
+
+    ollamaresponse=response['message']['content']
+    return ollamaresponse
 
 def image_to_text(image_path):
     # Load the BLIP model and processor
